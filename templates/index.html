@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcript to Detailed Notes Converter</title>
+    <style>
+        :root {
+            --bg-light: #f5f7fa;
+            --bg-dark: #1e1e2f;
+            --text-light: #2e2e2e;
+            --text-dark: #f0f0f0;
+            --accent: #6a11cb;
+            --accent-light: #8a2be2;
+            --heading-light: #4b0082;
+            --heading-dark: #9370db;
+            --code-bg-light: #f0f0f0;
+            --code-bg-dark: #2d2d3a;
+            --code-text-dark: #f1f1f1;
+            --blockquote-light: #e6f3ff;
+            --blockquote-dark: #2a3a4a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            padding: 1rem 2rem;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-title {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        body.dark-mode .main-title {
+            color: var(--accent-light);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-light);
+        }
+
+        .video-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .video-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .thumbnail {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .summary-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            position: relative;
+        }
+
+        body.dark-mode .summary-container {
+            background: var(--bg-dark);
+            border-color: #444;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .toggle-button {
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: transparent;
+            border: none;
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .toggle-button:hover {
+            transform: scale(1.1);
+        }
+
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.3);
+            transition: background-color 0.5s;
+        }
+
+        /* Summary content styling */
+        .summary-content h1 {
+            color: var(--heading-light);
+            border-bottom: 2px solid var(--accent-light);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            font-size: 1.8rem;
+        }
+
+        body.dark-mode .summary-content h1 {
+            color: var(--heading-dark);
+        }
+
+        .summary-content h2 {
+            color: var(--accent);
+            margin-top: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        body.dark-mode .summary-content h2 {
+            color: var(--accent-light);
+        }
+
+        .summary-content p {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .summary-content ul {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .summary-content li {
+            margin: 0.5rem 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--accent);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #d32f2f;
+            padding: 1rem;
+            background: #ffebee;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        body.dark-mode .error {
+            background: #5c2b29;
+        }
+
+        .pdf-download-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pdf-download-btn:hover {
+            background: var(--accent-light);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span>YouTube Transcript Converter</span>
+        <div class="header-buttons">
+            <button class="toggle-button" id="screenReader" title="Read aloud">🔊</button>
+            <button class="toggle-button" id="themeToggle" title="Toggle theme">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="main-title">YouTube Transcript to Detailed Notes Converter</h1>
+        
+        <div class="form-group">
+            <label for="youtube_link">🔗 Enter YouTube Video Link:</label>
+            <input type="text" id="youtube_link" placeholder="https://www.youtube.com/watch?v=...">
+        </div>
+        
+        <div class="form-group">
+            <label for="target_language">🌐 Select the target language for the summary:</label>
+            <select id="target_language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="zh-cn">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="hi">Hindi</option>
+                <option value="ur">Urdu</option>
+                <option value="te">Telugu</option>
+                <option value="kn">Kannada</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="difficulty">🧠 Select the difficulty level of the summary:</label>
+            <select id="difficulty">
+                <option value="Simple">Simple</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+        </div>
+        
+        <button id="getSummary">📝 Get Summary Notes</button>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Generating summary...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="videoContainer" class="video-container" style="display: none;">
+            <div id="videoTitle" class="video-title"></div>
+            <img id="thumbnail" class="thumbnail">
+        </div>
+        
+        <div id="summaryContainer" class="summary-container" style="display: none;">
+            <button id="downloadPdf" class="pdf-download-btn">⬇️ Download PDF</button>
+            <div id="summaryContent" class="summary-content"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const screenReaderBtn = document.getElementById('screenReader');
+            const getSummaryBtn = document.getElementById('getSummary');
+            const downloadPdfBtn = document.getElementById('downloadPdf');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const videoContainer = document.getElementById('videoContainer');
+            const videoTitle = document.getElementById('videoTitle');
+            const thumbnailImg = document.getElementById('thumbnail');
+            const summaryContainer = document.getElementById('summaryContainer');
+            const summaryContent = document.getElementById('summaryContent');
+            
+            const synth = window.speechSynthesis;
+            let isReading = false;
+            let utterance = null;
+            let currentContent = '';
+
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            });
+
+            // Screen reader functionality
+            screenReaderBtn.addEventListener('click', () => {
+                if (isReading) {
+                    synth.cancel();
+                    isReading = false;
+                    screenReaderBtn.textContent = '🔊';
+                    removeHighlights();
+                } else {
+                    readContent();
+                }
+            });
+
+            function readContent() {
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+
+                const content = summaryContent.textContent;
+                const language = document.documentElement.lang || 'en';
+                
+                utterance = new SpeechSynthesisUtterance(content);
+                utterance.lang = language;
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                utterance.onboundary = (event) => {
+                    removeHighlights();
+                    if (event.name === 'word') {
+                        const charIndex = event.charIndex;
+                        const wordLength = event.charLength;
+                        highlightText(charIndex, charIndex + wordLength);
+                    }
+                };
+                
+                utterance.onend = () => {
+                    isReading = false;
+                    screenReaderBtn.textContent = '🔊';
+                    removeHighlights();
+                };
+                
+                synth.speak(utterance);
+                isReading = true;
+                screenReaderBtn.textContent = '⏹️';
+            }
+
+            function highlightText(start, end) {
+                const text = summaryContent.textContent;
+                
+                if (start >= 0 && end <= text.length) {
+                    const range = document.createRange();
+                    const textNode = summaryContent.childNodes[0]; // Simple approach
+                    
+                    range.setStart(textNode, start);
+                    range.setEnd(textNode, end);
+                    
+                    const span = document.createElement('span');
+                    span.className = 'highlight';
+                    range.surroundContents(span);
+                    
+                    span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function removeHighlights() {
+                const highlights = document.querySelectorAll('.highlight');
+                highlights.forEach(highlight => {
+                    const parent = highlight.parentNode;
+                    parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+                    parent.normalize();
+                });
+            }
+
+            // Get summary functionality
+            getSummaryBtn.addEventListener('click', async () => {
+                const youtubeLink = document.getElementById('youtube_link').value;
+                const targetLanguage = document.getElementById('target_language').value;
+                const difficulty = document.getElementById('difficulty').value;
+                
+                if (!youtubeLink) {
+                    showError('Please enter a YouTube URL');
+                    return;
+                }
+                
+                loadingDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                videoContainer.style.display = 'none';
+                summaryContainer.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            'youtube_link': youtubeLink,
+                            'target_language': targetLanguage,
+                            'difficulty': difficulty
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+                    
+                    // Display video info
+                    videoTitle.textContent = `Video ID: ${data.video_id}`;
+                    thumbnailImg.src = data.thumbnail;
+                    videoContainer.style.display = 'block';
+                    
+                    // Format and display summary
+                    const formattedContent = formatSummaryContent(data.summary);
+                    summaryContent.innerHTML = formattedContent;
+                    currentContent = data.summary;
+                    
+                    summaryContainer.style.display = 'block';
+                } catch (error) {
+                    showError('An error occurred while fetching the summary');
+                    console.error(error);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                }
+            });
+
+            function formatSummaryContent(content) {
+                // Convert markdown to HTML
+                let html = '';
+                let inList = false;
+                
+                content.split('\n').forEach(line => {
+                    if (line.startsWith('# ')) {
+                        if (inList) {
+                            html += '</ul>';
+                            inList = false;
+                        }
+                        html += `<h1>${line.substring(2).trim()}</h1>`;
+                    } else if (line.startsWith('## ')) {
+                        if (inList) {
+                            html += '</ul>';
+                            inList = false;
+                        }
+                        html += `<h2>${line.substring(3).trim()}</h2>`;
+                    } else if (line.startsWith('- ')) {
+                        if (!inList) {
+                            html += '<ul>';
+                            inList = true;
+                        }
+                        html += `<li>${line.substring(2).trim()}</li>`;
+                    } else if (line.trim() === '') {
+                        if (inList) {
+                            html += '</ul>';
+                            inList = false;
+                        }
+                        html += '<p>&nbsp;</p>';
+                    } else {
+                        if (inList) {
+                            html += '</ul>';
+                            inList = false;
+                        }
+                        html += `<p>${line.trim()}</p>`;
+                    }
+                });
+                
+                if (inList) {
+                    html += '</ul>';
+                }
+                
+                return html;
+            }
+
+            function showError(message) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+
+            // Download PDF functionality
+            downloadPdfBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/download_pdf', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            'content': currentContent
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'youtube_summary.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        showError('Failed to generate PDF');
+                    }
+                } catch (error) {
+                    showError('An error occurred while downloading the PDF');
+                    console.error(error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
