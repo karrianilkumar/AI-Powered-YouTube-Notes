@@ -1,107 +1,3 @@
-# import streamlit as st
-# import google.generativeai as genai
-# from youtube_transcript_api import YouTubeTranscriptApi
-# from deep_translator import GoogleTranslator
-
-
-# # Set your API key
-# genai.configure(api_key="AIzaSyAudJfCh_7rfLbhYIwbshlSc3TbLjnqoP0")
-
-# # Prompt template
-# base_prompt = """You are a YouTube video summarizer. You will be taking the transcript text and summarizing the entire video 
-# and providing the important summary in points within 500 words. Please provide the summary of the text given here: """
-
-# def get_difficulty_prompt(difficulty):
-#     if difficulty == "Simple":
-#         return base_prompt + " Use simple language that is easy to understand."
-#     elif difficulty == "Medium":
-#         return base_prompt + " Use a moderate level of language complexity."
-#     elif difficulty == "Hard":
-#         return base_prompt + " Use advanced language and include technical terms if applicable."
-#     else:
-#         return base_prompt
-
-# def extract_video_id(youtube_url):
-#     try:
-#         if "v=" in youtube_url:
-#             return youtube_url.split("v=")[1].split("&")[0]
-#         elif "youtu.be/" in youtube_url:
-#             return youtube_url.split("youtu.be/")[1].split("?")[0]
-#     except:
-#         return None
-
-# def fetch_transcript(video_id):
-#     try:
-#         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-#         return " ".join([segment["text"] for segment in transcript_list])
-#     except Exception as e:
-#         st.error(f"Transcript Error: {e}")
-#         return None
-
-
-# def generate_summary(transcript_text, prompt):
-#     try:
-#         model = genai.GenerativeModel("text-bison-001")  # Update with the correct model name
-#         response = model.generate_content(prompt + transcript_text)
-#         return response.text
-#     except Exception as e:
-#         return f"❌ Failed to generate content: {e}"
-
-# def translate_text(text, target_lang):
-#     try:
-#         translated = GoogleTranslator(source='auto', target=target_lang).translate(text)
-#         return translated
-#     except Exception as e:
-#         return f"❌ Translation failed: {e}"
-
-
-# def main():
-#     st.set_page_config(
-#         page_title="YouTube Transcript Converter",
-#         page_icon="📹",
-#         layout="centered"
-#     )
-
-#     st.title("🎬 YouTube Transcript to Detailed Notes Converter")
-#     youtube_link = st.text_input("🔗 Enter YouTube Video Link:")
-
-#     if youtube_link:
-#         video_id = extract_video_id(youtube_link)
-#         if video_id:
-#             st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_container_width=True)
-
-#             languages = {
-#                 "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Chinese": "zh-cn",
-#                 "Japanese": "ja", "Korean": "ko", "Hindi": "hi", "Urdu": "ur", "Telugu": "te", "Kannada": "kn"
-#             }
-#             target_language = st.selectbox("🌐 Select the target language for the summary:", list(languages.keys()))
-#             difficulty = st.selectbox("🧠 Select the difficulty level of the summary:", ["Simple", "Medium", "Hard"])
-
-#             if st.button("📝 Get Summary Notes"):
-#                 transcript = fetch_transcript(video_id)
-#                 if transcript:
-#                     with st.spinner("⏳ Generating summary..."):
-#                         prompt = get_difficulty_prompt(difficulty)
-#                         summary = generate_summary(transcript, prompt)
-
-#                     if summary:
-#                         translated = translate_text(summary, languages[target_language])
-
-#                         st.markdown("## 📄 Summarized Notes:")
-#                         st.write(translated)
-
-#                         st.download_button(
-#                             label="⬇️ Download Summary",
-#                             data=translated,
-#                             file_name="summary.txt",
-#                             mime="text/plain"
-#                         )
-#         else:
-#             st.error("❌ Invalid YouTube URL format.")
-
-# if __name__ == "__main__":
-#     main()
-
 from flask import Flask, render_template, request, jsonify, send_file
 from youtube_transcript_api import YouTubeTranscriptApi
 from deep_translator import GoogleTranslator
@@ -278,3 +174,112 @@ def download_pdf():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+
+
+# import streamlit as st
+# import google.generativeai as genai
+# from youtube_transcript_api import YouTubeTranscriptApi
+# from deep_translator import GoogleTranslator
+
+
+# # Set your API key
+# genai.configure(api_key="AIzaSyAudJfCh_7rfLbhYIwbshlSc3TbLjnqoP0")
+
+# # Prompt template
+# base_prompt = """You are a YouTube video summarizer. You will be taking the transcript text and summarizing the entire video 
+# and providing the important summary in points within 500 words. Please provide the summary of the text given here: """
+
+# def get_difficulty_prompt(difficulty):
+#     if difficulty == "Simple":
+#         return base_prompt + " Use simple language that is easy to understand."
+#     elif difficulty == "Medium":
+#         return base_prompt + " Use a moderate level of language complexity."
+#     elif difficulty == "Hard":
+#         return base_prompt + " Use advanced language and include technical terms if applicable."
+#     else:
+#         return base_prompt
+
+# def extract_video_id(youtube_url):
+#     try:
+#         if "v=" in youtube_url:
+#             return youtube_url.split("v=")[1].split("&")[0]
+#         elif "youtu.be/" in youtube_url:
+#             return youtube_url.split("youtu.be/")[1].split("?")[0]
+#     except:
+#         return None
+
+# def fetch_transcript(video_id):
+#     try:
+#         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+#         return " ".join([segment["text"] for segment in transcript_list])
+#     except Exception as e:
+#         st.error(f"Transcript Error: {e}")
+#         return None
+
+
+# def generate_summary(transcript_text, prompt):
+#     try:
+#         model = genai.GenerativeModel("text-bison-001")  # Update with the correct model name
+#         response = model.generate_content(prompt + transcript_text)
+#         return response.text
+#     except Exception as e:
+#         return f"❌ Failed to generate content: {e}"
+
+# def translate_text(text, target_lang):
+#     try:
+#         translated = GoogleTranslator(source='auto', target=target_lang).translate(text)
+#         return translated
+#     except Exception as e:
+#         return f"❌ Translation failed: {e}"
+
+
+# def main():
+#     st.set_page_config(
+#         page_title="YouTube Transcript Converter",
+#         page_icon="📹",
+#         layout="centered"
+#     )
+
+#     st.title("🎬 YouTube Transcript to Detailed Notes Converter")
+#     youtube_link = st.text_input("🔗 Enter YouTube Video Link:")
+
+#     if youtube_link:
+#         video_id = extract_video_id(youtube_link)
+#         if video_id:
+#             st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_container_width=True)
+
+#             languages = {
+#                 "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Chinese": "zh-cn",
+#                 "Japanese": "ja", "Korean": "ko", "Hindi": "hi", "Urdu": "ur", "Telugu": "te", "Kannada": "kn"
+#             }
+#             target_language = st.selectbox("🌐 Select the target language for the summary:", list(languages.keys()))
+#             difficulty = st.selectbox("🧠 Select the difficulty level of the summary:", ["Simple", "Medium", "Hard"])
+
+#             if st.button("📝 Get Summary Notes"):
+#                 transcript = fetch_transcript(video_id)
+#                 if transcript:
+#                     with st.spinner("⏳ Generating summary..."):
+#                         prompt = get_difficulty_prompt(difficulty)
+#                         summary = generate_summary(transcript, prompt)
+
+#                     if summary:
+#                         translated = translate_text(summary, languages[target_language])
+
+#                         st.markdown("## 📄 Summarized Notes:")
+#                         st.write(translated)
+
+#                         st.download_button(
+#                             label="⬇️ Download Summary",
+#                             data=translated,
+#                             file_name="summary.txt",
+#                             mime="text/plain"
+#                         )
+#         else:
+#             st.error("❌ Invalid YouTube URL format.")
+
+# if __name__ == "__main__":
+#     main()
