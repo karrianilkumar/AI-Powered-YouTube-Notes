@@ -102,13 +102,4 @@ where a user can enter a YouTube video link, get a detailed summary of the video
 
 ---
 
-## 📌 Interview Preparation Notes
-
-- Explain **how Flask handles routes** and form submission
-- Explain **video ID extraction logic** for different YouTube URL formats
-- Show **Gemini API integration** and prompt engineering
-- Highlight **Markdown to HTML conversion** logic
-- Demonstrate **PDF generation** using FPDF
-- Discuss **error handling** in web apps
-- Emphasize **workflow: Frontend → Backend → API → Frontend**
 
