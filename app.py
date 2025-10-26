@@ -30,9 +30,11 @@ def get_difficulty_prompt(difficulty):
 def extract_video_id(url):
     try:
         if "v=" in url:
-            return url.split("v=")[1].split("&")[0]
+            # example_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley"
+            return url.split("v=")[1].split("&")[0]  # dQw4w9WgXcQ 
         elif "youtu.be/" in url:
-            return url.split("youtu.be/")[1].split("?")[0]
+            # example_url = "https://youtu.be/dQw4w9WgXcQ?si=abc123"  
+            return url.split("youtu.be/")[1].split("?")[0]   # dQw4w9WgXcQ
     except:
         return None
 
@@ -54,6 +56,9 @@ def generate_summary(prompt, transcript):
 
 def translate_text(text, target_lang):
     try:
+        """🗣️ source='auto'
+        ✅ "auto" means automatically detect the source language.
+        """
         return GoogleTranslator(source='auto', target=target_lang).translate(text)
     except Exception as e:
         return f"❌ Translation failed: {e}"
@@ -72,16 +77,26 @@ def create_pdf(html_content):
     # Add title
     pdf.set_font('DejaVu', 'B', 16)
     pdf.cell(0, 10, 'YouTube Transcript to Detailed Notes Converter', 0, 1, 'C')
-    pdf.ln(10)
+    # cell(width, height, text, border, line_break, align)
+    # width=0 → full width of page
+    # height=10 → height of text cell
+    # border=0 → no border
+    # line_break=1 → move to next line after this text
+    # align='C' → center the text
+    pdf.ln(10)  
+    # Add 10 units of vertical space after the title (like pressing enter)
     
     # Add content
     pdf.set_font('DejaVu', '', 12)
     
     for element in soup.find_all(['h1', 'h2', 'p', 'li']):
         if element.name == 'h1':
-            pdf.set_font('DejaVu', 'B', 14)
+            pdf.set_font('DejaVu', 'B', 14)  
+            # h1 is like a big heading → bold 14
             pdf.cell(0, 10, element.get_text(), 0, 1)
-            pdf.set_font('DejaVu', '', 12)
+            # Write heading text
+            pdf.set_font('DejaVu', '', 12)  
+            # Reset font to normal for next content
         elif element.name == 'h2':
             pdf.set_font('DejaVu', 'B', 12)
             pdf.cell(0, 10, element.get_text(), 0, 1)
@@ -163,7 +178,7 @@ def index():
 @app.route('/download_pdf', methods=['POST'])
 def download_pdf():
     content = request.form.get('content')
-    formatted_content = format_summary_content(content)
+    formatted_content = format_summary_content(content) # converts markdown reposnse format from gemini api to html format content
     pdf_bytes = create_pdf(formatted_content)
     return send_file(
         pdf_bytes,
